@@ -14,7 +14,10 @@ it uses java swings and event handling. the project consists of 2 parts. **front
 **How to Run:**
 
 1.Install Eclipse IDE.
+
 2.Create a package.
+
 3.Create 2 classes( FRONT_SIDE and BACK_SIDE)
+
 4.Paste the code in respective classes.
 
