@@ -1,0 +1,185 @@
+package IDCARDGENERATOR;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
+
+public class BACK_SIDE {
+    public static void main(String[] args) {
+        // Create main frame
+    	
+        JFrame frame = new JFrame("Student ID Card Generator");
+        frame.setSize(800, 600);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(null);
+
+        // Panel for user input
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(3, 2, 10, 10));
+        inputPanel.setBounds(20, 20, 350, 150);
+
+        JLabel phoneLabel = new JLabel("Phone Number: ");
+        JTextField phoneField = new JTextField();
+
+        JLabel addressLabel = new JLabel("Address: ");
+        JTextField addressField = new JTextField();
+
+        inputPanel.add(phoneLabel);
+        inputPanel.add(phoneField);
+        inputPanel.add(addressLabel);
+        inputPanel.add(addressField);
+
+        // Card Preview Panel for displaying the ID card
+        CardPreviewPanel cardPreviewPanel = new CardPreviewPanel();
+        cardPreviewPanel.setBounds(400, 20, 700, 400);
+        cardPreviewPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        // Button to upload background image
+        JButton uploadBackgroundButton = new JButton("Upload Background");
+        styleButton(uploadBackgroundButton, new Color(153, 0, 153), Color.WHITE);
+        uploadBackgroundButton.setBounds(200, 380, 170, 60);
+        uploadBackgroundButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            int option = fileChooser.showOpenDialog(frame);
+            if (option == JFileChooser.APPROVE_OPTION) {
+                try {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    BufferedImage backgroundImage = ImageIO.read(selectedFile);
+                    cardPreviewPanel.setBackgroundImage(backgroundImage);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame, "Failed to upload background image: " + ex.getMessage());
+                }
+            }
+        });
+
+        // Generate button
+        JButton generateButton = new JButton("Generate ID Card");
+        styleButton(generateButton, new Color(51, 204, 51), Color.WHITE);
+        generateButton.setBounds(20, 200, 170, 60);
+        generateButton.addActionListener(e -> {
+            cardPreviewPanel.setDetails(phoneField.getText(), addressField.getText());
+            cardPreviewPanel.repaint();
+        });
+
+        // Save button
+        JButton saveButton = new JButton("Save as PNG");
+        styleButton(saveButton, new Color(0, 153, 204), Color.WHITE);
+        saveButton.setBounds(20, 280, 170, 60);
+        saveButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Save ID Card as PNG");
+            int userSelection = fileChooser.showSaveDialog(frame);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                try {
+                    BufferedImage cardImage = new BufferedImage(cardPreviewPanel.getWidth(), cardPreviewPanel.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g2d = cardImage.createGraphics();
+                    cardPreviewPanel.paint(g2d); // Render the ID card to the BufferedImage
+                    g2d.dispose();
+                    ImageIO.write(cardImage, "png", new File(fileToSave.getAbsolutePath() + ".png"));
+                    JOptionPane.showMessageDialog(frame, "ID Card saved successfully!");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame, "Failed to save ID Card: " + ex.getMessage());
+                }
+            }
+        });
+
+        // Add components to frame
+        frame.add(inputPanel);
+        frame.add(cardPreviewPanel);
+        frame.add(generateButton);
+        frame.add(uploadBackgroundButton);
+        frame.add(saveButton);
+
+        // Make frame visible
+        frame.setVisible(true);
+    }
+
+    // Method to style buttons with background and text colors
+    private static void styleButton(JButton button, Color bgColor, Color fgColor) {
+        button.setBackground(bgColor);
+        button.setForeground(fgColor);
+        button.setFocusPainted(false);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+    }
+
+	public Component createBackSidePanel() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+}
+
+// Custom JPanel class for ID card rendering
+class CardPreviewPanel extends JPanel {
+    private BufferedImage backgroundImage;
+    private String phoneNumber = "";
+    private String address = "";
+    private BufferedImage universityLogo;
+    private String universityAddress = "University of Engineering and Technology, Taxila\n" +
+            "Address: Taxila, Punjab, Pakistan";
+
+  /*  public CardPreviewPanel() {
+        try {
+            // Load the university logo
+            universityLogo = ImageIO.read(new File("C:/Users/dell/Downloads/kk.png")); // Replace with the actual path to the logo file
+        } catch (Exception e) {
+            System.err.println("Failed to load logo: " + e.getMessage());
+        }
+    }*/
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+        // Draw the background image if it exists
+        if (backgroundImage != null) {
+            g2d.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), null);
+        } else {
+            // Set default background color if no background image is provided
+            g2d.setColor(Color.WHITE);
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+        }
+
+        // Header text (University of Engineering and Technology, Taxila)
+        g2d.setColor(Color.WHITE);  // Change to white color
+        g2d.setFont(new Font("Arial", Font.BOLD, 19));
+        g2d.drawString("UNIVERSITY OF ENGINEERING AND TECHNOLOGY, TAXILA", 80, 50);
+
+        // Draw phone number and address
+        g2d.setFont(new Font("Arial", Font.BOLD, 16));
+        g2d.setColor(Color.BLACK);
+        g2d.drawString("Phone Number: ", 150, 170);
+        g2d.drawString(phoneNumber, 300, 170);
+
+        g2d.drawString("Address: ", 150, 200);
+        g2d.drawString(address, 300, 200);
+
+        // Draw warning message below phone number and address
+        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+        g2d.setColor(Color.RED);
+        g2d.drawString("In case of emergency contact:", 150, 230);
+
+        // Draw the university address below the warning message
+        g2d.setColor(Color.BLACK);
+        g2d.setFont(new Font("Arial", Font.PLAIN, 14));
+        g2d.drawString(universityAddress, 150, 250);
+
+        // Draw the university logo at the bottom-right of the ID card
+        if (universityLogo != null) {
+            g2d.drawImage(universityLogo, getWidth() - 120, getHeight() - 80, 100, 60, null);
+        }
+    }
+
+    void setDetails(String phoneNumber, String address) {
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+        repaint();
+    }
+
+    void setBackgroundImage(BufferedImage backgroundImage) {
+        this.backgroundImage = backgroundImage;
+        repaint();
+    }
+}

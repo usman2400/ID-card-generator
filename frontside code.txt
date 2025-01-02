@@ -1,0 +1,230 @@
+package IDCARDGENERATOR;
+import javax.swing.*;	
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
+
+public class FRONT_SIDE {
+    public static void main(String[] args) {
+        // Create main frame
+        JFrame frame = new JFrame("Student ID Card Generator");
+        frame.setSize(800, 600);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(null);
+
+        // Panel for user input
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(5, 2, 10, 10));
+        inputPanel.setBounds(20, 20, 350, 200);
+
+        JLabel nameLabel = new JLabel("Name: ");
+        JTextField nameField = new JTextField();
+
+        JLabel idLabel = new JLabel("Student ID: ");
+        JTextField idField = new JTextField();
+
+        JLabel gradeLabel = new JLabel("Department: ");
+        JTextField gradeField = new JTextField();
+
+        JLabel issuedDateLabel = new JLabel("Issued On (DD/MM/YYYY): ");
+        JTextField issuedDateField = new JTextField();
+
+        JLabel photoLabel = new JLabel("Upload Photo: ");
+        JButton uploadButton = new JButton("Browse");
+        styleButton(uploadButton, new Color(0, 153, 153), Color.WHITE);
+
+        inputPanel.add(nameLabel);
+        inputPanel.add(nameField);
+        inputPanel.add(idLabel);
+        inputPanel.add(idField);
+        inputPanel.add(gradeLabel);
+        inputPanel.add(gradeField);
+        inputPanel.add(issuedDateLabel);
+        inputPanel.add(issuedDateField);
+        inputPanel.add(photoLabel);
+        inputPanel.add(uploadButton);
+
+        // ID Card Panel for preview
+        IDCardPanel idCardPanel = new IDCardPanel();
+        idCardPanel.setBounds(400, 20, 700, 400);
+        idCardPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        // Action for photo upload
+        uploadButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            int option = fileChooser.showOpenDialog(frame);
+            if (option == JFileChooser.APPROVE_OPTION) {
+                try {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    BufferedImage photo = ImageIO.read(selectedFile);
+                    idCardPanel.setStudentPhoto(photo);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame, "Failed to upload photo: " + ex.getMessage());
+                }
+            }
+        });
+
+        // Button to upload background image
+        JButton uploadBackgroundButton = new JButton("Upload Background");
+        styleButton(uploadBackgroundButton, new Color(153, 0, 153), Color.WHITE);
+        uploadBackgroundButton.setBounds(200, 380, 170, 60);
+        uploadBackgroundButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            int option = fileChooser.showOpenDialog(frame);
+            if (option == JFileChooser.APPROVE_OPTION) {
+                try {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    BufferedImage backgroundImage = ImageIO.read(selectedFile);
+                    idCardPanel.setBackgroundImage(backgroundImage);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame, "Failed to upload background image: " + ex.getMessage());
+                }
+            }
+        });
+
+        // Generate button
+        JButton generateButton = new JButton("Generate ID Card");
+        styleButton(generateButton, new Color(51, 204, 51), Color.WHITE);
+        generateButton.setBounds(200, 300, 170, 60);
+        generateButton.addActionListener(e -> {
+            idCardPanel.setStudentDetails(
+                    nameField.getText(),
+                    idField.getText(),
+                    gradeField.getText(),
+                    issuedDateField.getText()
+            );
+            idCardPanel.repaint();
+        });
+
+        // Save ID Card as PNG to desired location
+        JButton saveButton = new JButton("Save as PNG");
+        styleButton(saveButton, new Color(0, 102, 204), Color.WHITE);
+        saveButton.setBounds(200, 450, 170, 60);
+        saveButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Save ID Card");
+            int userSelection = fileChooser.showSaveDialog(frame);
+
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                try {
+                    File fileToSave = fileChooser.getSelectedFile();
+                    String filePath = fileToSave.getAbsolutePath();
+                    if (!filePath.endsWith(".png")) {
+                        filePath += ".png";
+                    }
+                    saveIDCardAsPNG(idCardPanel, filePath);
+                    JOptionPane.showMessageDialog(frame, "ID Card saved successfully!");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame, "Failed to save ID Card: " + ex.getMessage());
+                }
+            }
+        });
+
+        // Add components to frame
+        frame.add(inputPanel);
+        frame.add(idCardPanel);
+        frame.add(generateButton);
+        frame.add(uploadBackgroundButton);
+        frame.add(saveButton);
+
+        // Make frame visible
+        frame.setVisible(true);
+    }
+
+    private static void styleButton(JButton button, Color bgColor, Color fgColor) {
+        button.setBackground(bgColor);
+        button.setForeground(fgColor);
+        button.setFocusPainted(false);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+    }
+
+    private static void saveIDCardAsPNG(IDCardPanel idCardPanel, String filePath) throws Exception {
+        BufferedImage image = new BufferedImage(idCardPanel.getWidth(), idCardPanel.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = image.createGraphics();
+        idCardPanel.paint(g2d);
+        g2d.dispose();
+        File outputFile = new File(filePath);
+        ImageIO.write(image, "png", outputFile);
+    }
+}
+
+class IDCardPanel extends JPanel {
+    private BufferedImage studentPhoto;
+    private BufferedImage backgroundImage;
+    private BufferedImage universityLogo;
+    private String name = "";
+    private String studentID = "";
+    private String department = "";
+    private String issuedOn = "";
+
+    /*public IDCardPanel() {
+        try {
+            universityLogo = ImageIO.read(new File("C:/Users/dell/Downloads/kk.png")); // Update the path if needed
+        } catch (Exception e) {
+            System.err.println("Failed to load logo: " + e.getMessage());
+        }
+    }*/
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+        if (backgroundImage != null) {
+            g2d.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), null);
+        }
+
+        if (universityLogo != null) {
+            g2d.drawImage(universityLogo, 10, 10, 60, 60, null);
+        }
+
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font("Arial", Font.BOLD, 19));
+        g2d.drawString("UNIVERSITY OF ENGINEERING AND TECHNOLOGY, TAXILA", 80, 50);
+
+        g2d.setColor(Color.BLACK);
+        g2d.setFont(new Font("Arial", Font.BOLD, 24));
+        g2d.drawString("STUDENT ID CARD", 250, 120);
+
+        if (studentPhoto != null) {
+            g2d.drawImage(studentPhoto, 40, 140, 120, 160, null);
+        } else {
+            g2d.setColor(Color.LIGHT_GRAY);
+            g2d.fillRect(40, 140, 120, 160);
+            g2d.setColor(Color.BLACK);
+            g2d.drawRect(40, 140, 120, 160);
+            g2d.drawString("Photo", 65, 220);
+        }
+
+        g2d.setFont(new Font("Arial", Font.BOLD, 16));
+        g2d.drawString("Name: ", 200, 170);
+        g2d.drawString(name, 300, 170);
+
+        g2d.drawString("Student ID: ", 200, 200);
+        g2d.drawString(studentID, 300, 200);
+
+        g2d.drawString("Department: ", 200, 230);
+        g2d.drawString(department, 300, 230);
+
+        g2d.drawString("Issued On: ", 200, 260);
+        g2d.drawString(issuedOn, 300, 260);
+    }
+
+    void setStudentPhoto(BufferedImage photo) {
+        this.studentPhoto = photo;
+        repaint();
+    }
+
+    void setBackgroundImage(BufferedImage backgroundImage) {
+        this.backgroundImage = backgroundImage;
+        repaint();
+    }
+
+    void setStudentDetails(String name, String studentID, String department, String issuedOn) {
+        this.name = name;
+        this.studentID = studentID;
+        this.department = department;
+        this.issuedOn = issuedOn;
+    }
+}

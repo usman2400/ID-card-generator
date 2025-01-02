@@ -1,0 +1,8 @@
+NOTE:
+
+if you are facing error regarding logo, just place the address of your logo image in 
+"universityLogo = ImageIO.read(new File("your image address.png"))" panel. 
+the panel is commented for your instance
+
+
+you can select the background of your own choice
